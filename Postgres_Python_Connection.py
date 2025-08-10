@@ -1,42 +1,50 @@
 #import the lib. and reference it as db
-try:
-    import psycopg2
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
-    # print("✅ psycopg2 imported successfully!")
 
-    # Test basic connection (replace with your details)
-    conn = psycopg2.connect(
-        host="localhost",
+def createconnection():
+    try:
+        # Test basic connection (replace with your details)
+        conn = psycopg2.connect(
+            host="localhost",
         database="dataengineering",
-        user="postgres",
-        password="postgres"
-    )
-    # print("✅ Database connection successful!")
-    cur = conn.cursor()
-    query = "insert into users(id,name,street,city,zip) values ({},'{}','{}','{}','{}')".format(1,'Big Bird','Seasame Street','Fakeville','12345')
-    #Pass your query to the mogrify method:
+            user="postgres",
+            password="postgres"
+        )
+        return conn
+    except Exception as e:
+        print(f"❌ Connection error: {e}")
 
-    query2 = "insert into users(id,name,street,city,zip) values(%s,%s,%s,%s,%s)"
-    data = (2,'Small Bird','Mustart Street','Mockville','6789')
-    cur.mogrify(query)
-    cur.mogrify(query2)
+def insert_query(data:tuple):
+    try:
+        conn = createconnection()
+        if conn is None:
+            return None
+        cur = conn.cursor()
 
-    #execute the query to insert the records
+        # Pass your query to the mogrify method:
+        insert_query = "insert into users(id,name,street,city,zip) values(%s,%s,%s,%s,%s)"
 
-    cur.execute(query)
-    conn.commit()
-    cur.close()
-    conn.close()
-
-except ImportError as e:
-    print(f"❌ Import error: {e}")
-except Exception as e:
-    print(f"❌ Connection error: {e}")
-
-#Create a connection string that contains the host,database, username, and password
-# conn_string = "dbname='dataengineering' user='postgres' host='localhost' password='postgres'"
-#
-# #Create the connection object
-# conn = db.connect(conn_string)
-# cur = conn.cursor()
-# cur.execute('SELECT 1')
+        # execute the query to insert the records
+        cur.executemany(insert_query, data)
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"❌ Connection error: {e}")
+        return None
+def select_query():
+    try:
+        conn = createconnection()
+        if conn is None:
+            return None
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM users")
+        results = cur.fetchall()
+        cur.close()
+        conn.close()
+        return results
+    except Exception as e:
+        print(f"❌ Connection error: {e}")
+        return None
